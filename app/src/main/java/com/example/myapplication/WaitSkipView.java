@@ -2,12 +2,20 @@ package com.example.myapplication;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.OvalShape;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.annotation.StringRes;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.TranslateAnimation;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -15,7 +23,8 @@ import android.widget.TextView;
  * Created on 1/4/17.
  */
 
-public class WaitSkipView extends LinearLayout {
+public class WaitSkipView extends RelativeLayout {
+    private static final String COLOR_GREEN = "#FF3FB54F";
     private static final long DEFAULT_SKIP_AFTER_MILLIS = 5000;
     private static final long DEFAULT_TIMER_INTERVAL = 500;
 
@@ -46,21 +55,36 @@ public class WaitSkipView extends LinearLayout {
                     skipActionListener.onSkip();
             }
         });
+
+        ShapeDrawable timerCircle = drawOval(true, timerTextView.getWidth(), timerTextView.getHeight(),
+                Color.parseColor(COLOR_GREEN));
+        GradientDrawable actionOval = drawRoundedRectangle(false, action.getWidth(), action.getHeight(),
+                Color.parseColor(COLOR_GREEN));
+
+
+        if (Build.VERSION.SDK_INT >= 16) {
+            timerTextView.setBackground(timerCircle);
+            action.setBackground(actionOval);
+        } else {
+            timerTextView.setBackgroundDrawable(timerCircle);
+            action.setBackgroundDrawable(actionOval);
+        }
     }
 
     public void setCompletionText(@StringRes int initial, @StringRes int onCompletion) {
         this.initialText = getContext().getString(initial);
         this.completionText = getContext().getString(onCompletion);
-        setActionText(isComplete ? completionText : initialText);
+        setActionText();
     }
 
     public void setCompletionText(String initialText, String completionText) {
         this.initialText = initialText;
         this.completionText = completionText;
-        setActionText(isComplete ? completionText : initialText);
+        setActionText();
     }
 
-    private void setActionText(String text) {
+    private void setActionText() {
+        String text = isComplete ? completionText : initialText;
         action.setText(text == null ? "" : text);
     }
 
@@ -73,6 +97,8 @@ public class WaitSkipView extends LinearLayout {
     }
 
     public void start(long duration, long interval) {
+        animateAction(-1000, 0);
+        action.setVisibility(VISIBLE);
         timer = new CountDownTimer(duration, interval) {
             long currentSecs;
 
@@ -86,14 +112,23 @@ public class WaitSkipView extends LinearLayout {
 
             @Override
             public void onFinish() {
-                animateAction(0, -1000);
-                action.postDelayed(new Runnable() {
+                timerTextView.setVisibility(GONE);
+                LayoutTransition.TransitionListener transitionListener = new LayoutTransition.TransitionListener() {
                     @Override
-                    public void run() {
-                        setActionText(completionText);
-                        animateAction(-1000, 0);
+                    public void startTransition(LayoutTransition layoutTransition, ViewGroup viewGroup, View view, int i) {
+                        if(view==timerTextView){
+                            timerTextView.setVisibility(VISIBLE);
+                            getLayoutTransition().removeTransitionListener(this);
+                        }
                     }
-                }, 2000);
+
+                    @Override
+                    public void endTransition(LayoutTransition layoutTransition, ViewGroup viewGroup, View view, int i) {
+
+                    }
+                };
+                getLayoutTransition().addTransitionListener(transitionListener);
+                action.setVisibility(GONE);
                 if (timerFinishListener != null)
                     timerFinishListener.onFinish();
             }
@@ -143,5 +178,21 @@ public class WaitSkipView extends LinearLayout {
         animation.setFillAfter(true);
         animation.setDuration(500);
         action.startAnimation(animation);
+    }
+
+    public static ShapeDrawable drawOval(boolean fill, int width, int height, int color) {
+        ShapeDrawable oval = new ShapeDrawable(new OvalShape());
+        oval.setIntrinsicHeight(height);
+        oval.setIntrinsicWidth(width);
+        oval.getPaint().setStyle(fill ? Paint.Style.FILL : Paint.Style.STROKE);
+        oval.getPaint().setColor(color);
+        return oval;
+    }
+
+    public static GradientDrawable drawRoundedRectangle(boolean fill, int width, int height, int color) {
+        GradientDrawable gdDefault = new GradientDrawable();
+        gdDefault.setColor(color);
+        gdDefault.setCornerRadius(16);
+        return gdDefault;
     }
 }
