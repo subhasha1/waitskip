@@ -2,7 +2,6 @@ package com.example.waitskip;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,13 +11,10 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.annotation.StringRes;
-import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.Interpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.RelativeLayout;
 import android.widget.TextSwitcher;
@@ -33,7 +29,7 @@ import java.util.Locale;
 
 public class WaitSkipView extends RelativeLayout {
     public static final String COLOR_DEFAULT = "#FF3FB54F";
-    private static final String SECOND_FORMATER = "%d s";
+    private static final String SECOND_FORMATTER = "%d s";
     private static final long DEFAULT_SKIP_AFTER_MILLIS = 5000;
     private static final long DEFAULT_TIMER_INTERVAL = 500;
 
@@ -102,9 +98,7 @@ public class WaitSkipView extends RelativeLayout {
     }
 
     public void setCompletionText(@StringRes int initial, @StringRes int onCompletion) {
-        this.initialText = getContext().getString(initial);
-        this.completionText = getContext().getString(onCompletion);
-        setActionText();
+        setCompletionText(getContext().getString(initial), getContext().getString(onCompletion));
     }
 
     public void setCompletionText(String initialText, String completionText) {
@@ -146,14 +140,13 @@ public class WaitSkipView extends RelativeLayout {
                     long remainingSecs = millisUntilFinished / 1000L;
                     if (currentSecs == remainingSecs) return;
                     currentSecs = remainingSecs;
-                    timerTextView.setText(String.format(Locale.getDefault(), SECOND_FORMATER, currentSecs));
+                    timerTextView.setText(String.format(Locale.getDefault(), SECOND_FORMATTER, currentSecs));
                 }
 
                 @Override
                 public void onFinish() {
                     isComplete = true;
                     timerTextView.setVisibility(INVISIBLE);
-//                    ObjectAnimator.ofFloat(timerTextView, "alpha", 1, 0).setDuration(1000).start();
                     setActionText();
                     if (timerFinishListener != null)
                         timerFinishListener.onFinish();
