@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.Interpolator;
 import android.view.animation.TranslateAnimation;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
@@ -34,6 +35,7 @@ public class WaitSkipView extends RelativeLayout {
     private static final long DEFAULT_SKIP_AFTER_MILLIS = 5000;
     private static final long DEFAULT_TIMER_INTERVAL = 500;
 
+    private FrameLayout timerFrame;
     private NumberAnimatorView timerTextView;
     private TextSwitcher action;
     private CountDownTimer timer;
@@ -55,6 +57,7 @@ public class WaitSkipView extends RelativeLayout {
         setLayoutTransition(new LayoutTransition());
         timerTextView = (NumberAnimatorView) findViewById(R.id.numberAnimator);
         action = (TextSwitcher) findViewById(R.id.completeAction);
+        timerFrame = (FrameLayout) findViewById(R.id.timerFrame);
 
 //        Text fade out
         Animation fadeOut = new AlphaAnimation(1, 0);
@@ -77,12 +80,11 @@ public class WaitSkipView extends RelativeLayout {
                 Color.parseColor(COLOR_GREEN));
         GradientDrawable actionOval = drawRoundedRectangle(Color.parseColor(COLOR_GREEN));
 
-
         if (Build.VERSION.SDK_INT >= 16) {
-            findViewById(R.id.timerFrame).setBackground(timerCircle);
+            timerFrame.setBackground(timerCircle);
             action.setBackground(actionOval);
         } else {
-            findViewById(R.id.timerFrame).setBackgroundDrawable(timerCircle);
+            timerFrame.setBackgroundDrawable(timerCircle);
             action.setBackgroundDrawable(actionOval);
         }
     }
@@ -117,6 +119,7 @@ public class WaitSkipView extends RelativeLayout {
             timer.cancel();
             timer = null;
             start(duration, interval);
+            return;
         }
         this.isComplete = false;
         setActionText();
@@ -138,8 +141,7 @@ public class WaitSkipView extends RelativeLayout {
                 @Override
                 public void onFinish() {
                     isComplete = true;
-                    timerTextView.setVisibility(INVISIBLE);
-//                    ObjectAnimator.ofFloat(timerTextView, "alpha", 1, 0).setDuration(1000).start();
+                    timerFrame.setVisibility(INVISIBLE);
                     setActionText();
                     if (timerFinishListener != null)
                         timerFinishListener.onFinish();

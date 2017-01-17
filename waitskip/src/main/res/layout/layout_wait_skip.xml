@@ -31,11 +31,11 @@
 
         <com.example.waitskip.NumberAnimatorView
             android:id="@+id/numberAnimator"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:gravity="center"
+            android:padding="4dp"
             android:layout_gravity="center"
-            android:layout_margin="4dp"
             android:textColor="@android:color/white" />
     </FrameLayout>
 

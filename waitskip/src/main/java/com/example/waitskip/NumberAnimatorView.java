@@ -77,7 +77,7 @@ public class NumberAnimatorView extends View {
 
         int length = controlPoints.length;
 
-        int height = getMeasuredHeight();
+        int height = (int) (0.95 * getMeasuredHeight());
         int width = getMeasuredWidth();
 
         float minDimen = height > width ? width : height;
