@@ -10,8 +10,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.myapplication.MainActivity">
 
-    <com.example.myapplication.WaitSkipView
+    <com.example.waitskip.WaitSkipView
         android:id="@+id/waitSkipView"
         android:layout_width="match_parent"
         android:layout_height="60dp" />
+
+    <Button
+        android:onClick="restart"
+        android:text="restart"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </RelativeLayout>
