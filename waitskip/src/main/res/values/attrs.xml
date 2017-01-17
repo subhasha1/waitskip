@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WaitSkip">
+        <attr name="timerBackground" format="color" />
+        <attr name="actionBackground" format="color" />
+    </declare-styleable>
+
+    <color name="timerBackgroundDefault">#FF3FB54F</color>
+    <color name="actionBackgroundDefault">#FF3FB54F</color>
+
+</resources>

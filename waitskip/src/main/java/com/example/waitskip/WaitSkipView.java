@@ -2,6 +2,8 @@ package com.example.waitskip;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
@@ -10,6 +12,7 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.support.annotation.StringRes;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -29,12 +32,12 @@ import java.util.Locale;
  */
 
 public class WaitSkipView extends RelativeLayout {
-    private static final String COLOR_GREEN = "#FF3FB54F";
+    public static final String COLOR_DEFAULT = "#FF3FB54F";
     private static final String SECOND_FORMATER = "%d s";
     private static final long DEFAULT_SKIP_AFTER_MILLIS = 5000;
     private static final long DEFAULT_TIMER_INTERVAL = 500;
 
-    private NumberAnimatorView timerTextView;
+    private TextView timerTextView;
     private TextSwitcher action;
     private CountDownTimer timer;
     private OnSkipActionListener skipActionListener;
@@ -42,10 +45,21 @@ public class WaitSkipView extends RelativeLayout {
     private String initialText;
     private String completionText;
     private boolean isComplete;
+    private int timerBackground;
+    private int actionBackground;
 
     public WaitSkipView(Context context, AttributeSet attrs) {
         super(context, attrs);
         if (isInEditMode()) return;
+
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.WaitSkip, 0, 0);
+        try {
+            timerBackground = a.getColor(R.styleable.WaitSkip_timerBackground, Color.parseColor(COLOR_DEFAULT));
+            actionBackground = a.getColor(R.styleable.WaitSkip_actionBackground, Color.parseColor(COLOR_DEFAULT));
+        } finally {
+            a.recycle();
+        }
+
         init(context);
     }
 
@@ -53,7 +67,7 @@ public class WaitSkipView extends RelativeLayout {
         inflate(context, R.layout.layout_wait_skip, this);
         setClipChildren(true);
         setLayoutTransition(new LayoutTransition());
-        timerTextView = (NumberAnimatorView) findViewById(R.id.numberAnimator);
+        timerTextView = (TextView) findViewById(R.id.timer);
         action = (TextSwitcher) findViewById(R.id.completeAction);
 
 //        Text fade out
@@ -74,15 +88,15 @@ public class WaitSkipView extends RelativeLayout {
         });
 
         ShapeDrawable timerCircle = drawOval(true, timerTextView.getWidth(), timerTextView.getHeight(),
-                Color.parseColor(COLOR_GREEN));
-        GradientDrawable actionOval = drawRoundedRectangle(Color.parseColor(COLOR_GREEN));
+                timerBackground);
+        GradientDrawable actionOval = drawRoundedRectangle(actionBackground);
 
 
         if (Build.VERSION.SDK_INT >= 16) {
-            findViewById(R.id.timerFrame).setBackground(timerCircle);
+            timerTextView.setBackground(timerCircle);
             action.setBackground(actionOval);
         } else {
-            findViewById(R.id.timerFrame).setBackgroundDrawable(timerCircle);
+            timerTextView.setBackgroundDrawable(timerCircle);
             action.setBackgroundDrawable(actionOval);
         }
     }
@@ -120,19 +134,19 @@ public class WaitSkipView extends RelativeLayout {
         }
         this.isComplete = false;
         setActionText();
-        animateAction(-100, 0);
+        animateAction(-(timerTextView.getWidth() / 2), 0);
         timerTextView.setVisibility(VISIBLE);
         action.setVisibility(VISIBLE);
         if (timer == null) {
             timer = new CountDownTimer(duration, interval) {
-                int currentSecs;
+                long currentSecs;
 
                 @Override
                 public void onTick(long millisUntilFinished) {
-                    int remainingSecs = (int) (millisUntilFinished / 1000L);
+                    long remainingSecs = millisUntilFinished / 1000L;
                     if (currentSecs == remainingSecs) return;
-                    timerTextView.animate(currentSecs, remainingSecs).setDuration(300).start();
                     currentSecs = remainingSecs;
+                    timerTextView.setText(String.format(Locale.getDefault(), SECOND_FORMATER, currentSecs));
                 }
 
                 @Override
@@ -195,23 +209,6 @@ public class WaitSkipView extends RelativeLayout {
         animation.setFillAfter(true);
         animation.setDuration(500);
         action.startAnimation(animation);
-    }
-
-    private Animation animateAlpha(float fromAlpha, float toAlpha, long duration, Interpolator interpolator) {
-        Animation alpha = new AlphaAnimation(fromAlpha, toAlpha);
-        alpha.setInterpolator(interpolator); //add this
-        alpha.setDuration(duration);
-        return alpha;
-    }
-
-    private void startSet(View view, Animation... animations) {
-        AnimationSet animation = new AnimationSet(false); //change to false
-        for (Animation animation1 : animations) {
-            animation.addAnimation(animation1);
-        }
-        animation.setFillAfter(true);
-        animation.setFillBefore(true);
-        view.startAnimation(animation);
     }
 
     private static ShapeDrawable drawOval(boolean fill, int width, int height, int color) {
