@@ -2,6 +2,7 @@ package com.example.waitskip;
 
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
@@ -30,7 +31,7 @@ import java.util.Locale;
  */
 
 public class WaitSkipView extends RelativeLayout {
-    private static final String COLOR_GREEN = "#FF3FB54F";
+    public static final String COLOR_DEFAULT = "#FF3FB54F";
     private static final String SECOND_FORMATER = "%d s";
     private static final long DEFAULT_SKIP_AFTER_MILLIS = 5000;
     private static final long DEFAULT_TIMER_INTERVAL = 500;
@@ -44,10 +45,22 @@ public class WaitSkipView extends RelativeLayout {
     private String initialText;
     private String completionText;
     private boolean isComplete;
+    private int actionBackground;
+    private int timerBackground;
 
     public WaitSkipView(Context context, AttributeSet attrs) {
         super(context, attrs);
         if (isInEditMode()) return;
+
+        TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.WaitSkip, 0, 0);
+        try {
+            timerBackground = a.getColor(R.styleable.WaitSkip_timerBackground, Color.parseColor(COLOR_DEFAULT));
+            actionBackground = a.getColor(R.styleable.WaitSkip_actionBackground, Color.parseColor(COLOR_DEFAULT));
+        } finally {
+            a.recycle();
+        }
+
+
         init(context);
     }
 
@@ -77,8 +90,8 @@ public class WaitSkipView extends RelativeLayout {
         });
 
         ShapeDrawable timerCircle = drawOval(true, timerTextView.getWidth(), timerTextView.getHeight(),
-                Color.parseColor(COLOR_GREEN));
-        GradientDrawable actionOval = drawRoundedRectangle(Color.parseColor(COLOR_GREEN));
+                timerBackground);
+        GradientDrawable actionOval = drawRoundedRectangle(actionBackground);
 
         if (Build.VERSION.SDK_INT >= 16) {
             timerFrame.setBackground(timerCircle);
@@ -124,7 +137,7 @@ public class WaitSkipView extends RelativeLayout {
         this.isComplete = false;
         setActionText();
         animateAction(-100, 0);
-        timerTextView.setVisibility(VISIBLE);
+        timerFrame.setVisibility(VISIBLE);
         action.setVisibility(VISIBLE);
         if (timer == null) {
             timer = new CountDownTimer(duration, interval) {
